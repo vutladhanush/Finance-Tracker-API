@@ -1,11 +1,10 @@
-package com.finance.service;
 
+package com.finance.service;
 
 import com.finance.dto.UserRequest;
 import com.finance.entity.User;
 import com.finance.exception.ResourceNotFoundException;
 import com.finance.repository.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,11 +13,9 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     public User createUser(UserRequest request) {
@@ -40,7 +37,8 @@ public class UserService {
 
         return userRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found with id: " + id));
+                        new ResourceNotFoundException(
+                                "User not found with id: " + id));
     }
 
     public User updateUser(Long id, UserRequest request) {

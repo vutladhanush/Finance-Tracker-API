@@ -120,4 +120,8 @@ public class TransactionService {
 
         transactionRepository.delete(transaction);
     }
+
+    public List<Transaction> getAllTransactions() {
+        return transactionRepository.findAll();
+    }
 }

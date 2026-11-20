@@ -1,12 +1,12 @@
 package com.finance.controller;
 
 import com.finance.dto.TransactionRequest;
+import com.finance.dto.TransactionResponse;
 import com.finance.entity.Transaction;
 import com.finance.service.TransactionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,65 +21,77 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
-    @PostMapping
-    public ResponseEntity<Transaction> createTransaction(
-            @Valid @RequestBody TransactionRequest request) {
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(transactionService.createTransaction(request));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions(
-            Authentication authentication) {
-
-        String email = authentication.getName();
-
-        return ResponseEntity.ok(
-                transactionService.getTransactionsByEmail(email)
+    private TransactionResponse toResponse(Transaction t) {
+        return new TransactionResponse(
+                t.getId(),
+                t.getCategory().getId(),
+                t.getCategory().getName(),
+                t.getAmount(),
+                String.valueOf(t.getType()),
+                t.getDescription(),
+                t.getTransactionDate()
         );
     }
 
+    private List<TransactionResponse> toResponseList(List<Transaction> list) {
+        return list.stream().map(this::toResponse).toList();
+    }
+
+    @PostMapping
+    public ResponseEntity<TransactionResponse> createTransaction(
+            @Valid @RequestBody TransactionRequest request) {
+
+        Transaction saved = transactionService.createTransaction(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(toResponse(saved));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TransactionResponse>> getAllTransactions() {
+        return ResponseEntity.ok(
+                toResponseList(transactionService.getAllTransactions()));
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> getTransactionById(
+    public ResponseEntity<TransactionResponse> getTransactionById(
             @PathVariable Long id) {
 
         return ResponseEntity.ok(
-                transactionService.getTransactionById(id));
+                toResponse(transactionService.getTransactionById(id)));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Transaction>> getTransactionsByUser(
+    public ResponseEntity<List<TransactionResponse>> getTransactionsByUser(
             @PathVariable Long userId) {
 
         return ResponseEntity.ok(
-                transactionService.getTransactionsByUser(userId));
+                toResponseList(transactionService.getTransactionsByUser(userId)));
     }
 
     @GetMapping("/user/{userId}/expenses")
-    public ResponseEntity<List<Transaction>> getExpenses(
+    public ResponseEntity<List<TransactionResponse>> getExpenses(
             @PathVariable Long userId) {
 
         return ResponseEntity.ok(
-                transactionService.getExpensesByUser(userId));
+                toResponseList(transactionService.getExpensesByUser(userId)));
     }
 
     @GetMapping("/user/{userId}/income")
-    public ResponseEntity<List<Transaction>> getIncome(
+    public ResponseEntity<List<TransactionResponse>> getIncome(
             @PathVariable Long userId) {
 
         return ResponseEntity.ok(
-                transactionService.getIncomeByUser(userId));
+                toResponseList(transactionService.getIncomeByUser(userId)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Transaction> updateTransaction(
+    public ResponseEntity<TransactionResponse> updateTransaction(
             @PathVariable Long id,
             @Valid @RequestBody TransactionRequest request) {
 
         return ResponseEntity.ok(
-                transactionService.updateTransaction(id, request));
+                toResponse(transactionService.updateTransaction(id, request)));
     }
 
     @DeleteMapping("/{id}")
@@ -87,7 +99,6 @@ public class TransactionController {
             @PathVariable Long id) {
 
         transactionService.deleteTransaction(id);
-
         return ResponseEntity.noContent().build();
     }
 }
